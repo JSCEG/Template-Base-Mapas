@@ -2483,7 +2483,8 @@ document.addEventListener('DOMContentLoaded', function () {
             map.removeControl(pibLegendControl);
         }
 
-        pibLegendControl = L.control({ position: 'topright' });
+        // Posicionar en bottomright para mayor visibilidad y evitar solapamiento
+        pibLegendControl = L.control({ position: 'bottomright' });
 
         pibLegendControl.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend');
@@ -2528,6 +2529,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         pibLegendControl.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend legend-two-columns');
+            // Asegurar que se muestre por encima
+            div.style.zIndex = '1001';
+            div.style.display = 'block';
             div.innerHTML = '<strong>ADICIONES DE CAPACIDAD Y ALMACENAMIENTO (MW)</strong><br>';
 
             // Create two-column container
@@ -2535,17 +2539,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const column1 = L.DomUtil.create('div', 'legend-column', columnsContainer);
             const column2 = L.DomUtil.create('div', 'legend-column', columnsContainer);
 
-            // Add dynamic legend items with color, acronym, technology and value
+            let hasData = false;
             if (totals && totals.columnNames) {
                 const itemsPerColumn = Math.ceil(totals.columnNames.length / 2);
-                let currentColumn = 0;
-
                 totals.columnNames.forEach((col, index) => {
                     if (totals.columns[col] > 0) {
+                        hasData = true;
                         const color = getTechnologyColor(col);
                         const acronym = getTechnologyAcronym(col);
                         const value = totals.columns[col].toLocaleString('es-MX');
-
                         const targetColumn = index < itemsPerColumn ? column1 : column2;
                         const itemDiv = L.DomUtil.create('div', 'legend-item', targetColumn);
                         itemDiv.innerHTML = `<i style="background: ${color}; width: 16px; height: 10px; border: none; display: inline-block; margin-right: 6px;"></i> ${col.toUpperCase()} (${acronym}): ${value} MW`;
@@ -2554,16 +2556,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Add separated totals at the bottom (full width)
-            if (totals) {
-                const totalsContainer = L.DomUtil.create('div', 'legend-totals-row', div);
-                if (totals.generationTotal && totals.generationTotal > 0) {
-                    const genDiv = L.DomUtil.create('span', 'legend-total-item', totalsContainer);
-                    genDiv.innerHTML = `<strong>TOTAL CAPACIDAD: ${totals.generationTotal.toLocaleString('es-MX')} MW</strong>`;
-                }
-                if (totals.storageTotal && totals.storageTotal > 0) {
-                    const almDiv = L.DomUtil.create('span', 'legend-total-item', totalsContainer);
-                    almDiv.innerHTML = `<strong style="color: #9932CC;">TOTAL ALMACENAMIENTO: ${totals.storageTotal.toLocaleString('es-MX')} MW</strong>`;
-                }
+            const totalsContainer = L.DomUtil.create('div', 'legend-totals-row', div);
+            if (totals && totals.generationTotal && totals.generationTotal > 0) {
+                hasData = true;
+                const genDiv = L.DomUtil.create('span', 'legend-total-item', totalsContainer);
+                genDiv.innerHTML = `<strong>TOTAL CAPACIDAD: ${totals.generationTotal.toLocaleString('es-MX')} MW</strong>`;
+            }
+            if (totals && totals.storageTotal && totals.storageTotal > 0) {
+                hasData = true;
+                const almDiv = L.DomUtil.create('span', 'legend-total-item', totalsContainer);
+                almDiv.innerHTML = `<strong style="color: #9932CC;">TOTAL ALMACENAMIENTO: ${totals.storageTotal.toLocaleString('es-MX')} MW</strong>`;
+            }
+
+            if (!hasData) {
+                const emptyDiv = L.DomUtil.create('div', 'legend-item', div);
+                emptyDiv.innerHTML = '<em>Sin datos disponibles</em>';
             }
 
             return div;

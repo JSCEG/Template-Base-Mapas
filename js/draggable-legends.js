@@ -246,6 +246,60 @@
 
         resizeHandle.addEventListener('mousedown', onResizeDown);
         resizeHandle.addEventListener('click', function (e) { e.stopPropagation(); });
+
+        // --- Plus / Minus controls ---
+        const controls = document.createElement('div');
+        controls.className = 'legend-scale-controls no-export';
+        controls.style.cssText = `
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            display: flex;
+            gap: 4px;
+        `;
+        const btnMinus = document.createElement('button');
+        btnMinus.textContent = '−';
+        btnMinus.title = 'Reducir leyenda';
+        btnMinus.style.cssText = `
+            width: 18px; height: 18px; line-height: 16px;
+            font-size: 12px; cursor: pointer; border: 1px solid #ccc;
+            border-radius: 3px; background: #fff; color: #333; padding: 0;
+        `;
+        const btnPlus = document.createElement('button');
+        btnPlus.textContent = '+';
+        btnPlus.title = 'Aumentar leyenda';
+        btnPlus.style.cssText = btnMinus.style.cssText;
+        controls.appendChild(btnMinus);
+        controls.appendChild(btnPlus);
+        legendElement.appendChild(controls);
+
+        function bumpScale(delta) {
+            scale = Math.min(maxScale, Math.max(minScale, scale + delta));
+            applyLegendScale(legendElement, scale);
+            legendElement.dataset.legendScale = String(scale);
+        }
+
+        btnMinus.addEventListener('click', function (e) {
+            e.stopPropagation();
+            bumpScale(-0.1);
+        });
+
+        btnPlus.addEventListener('click', function (e) {
+            e.stopPropagation();
+            bumpScale(0.1);
+        });
+
+        // --- Double click cycle ---
+        const cycleScales = [0.8, 1.0, 1.4, 1.8];
+        legendElement.addEventListener('dblclick', function (e) {
+            e.stopPropagation();
+            // Encontrar el siguiente valor del ciclo más cercano
+            let idx = cycleScales.findIndex(v => Math.abs(v - scale) < 0.05);
+            idx = (idx === -1 ? 0 : (idx + 1) % cycleScales.length);
+            scale = cycleScales[idx];
+            applyLegendScale(legendElement, scale);
+            legendElement.dataset.legendScale = String(scale);
+        });
     }
 
     function applyLegendScale(el, s) {
