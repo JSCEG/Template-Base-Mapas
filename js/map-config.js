@@ -9158,8 +9158,34 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Recargar datos del mapa de adiciones de capacidad totales
                     await loadTotalCapacityAdditionsMap(mapConfig);
                 } else {
-                    // Para otros mapas, usar la función normal
-                    loadAndRender({ silent: false });
+                    // Para otros mapas (incluyendo Figura 2.1), recargar GeoJSON y datos
+                    togglePreloader(true);
+                    try {
+                        // Limpiar capas actuales
+                        instrumentLayerGroup.clearLayers();
+                        connectionsLayerGroup.clearLayers();
+                        clearInsetLayers();
+
+                        // Recargar geometrías (regiones/líneas)
+                        if (mapConfig.geojsonUrl) {
+                            await loadGeoJSON(mapConfig.geojsonUrl, { type: mapConfig.geojsonUrlType });
+                        }
+                        if (mapConfig.connectionsGeojsonUrl) {
+                            await loadConnectionsGeoJSON(mapConfig.connectionsGeojsonUrl, { showPreloader: false, clear: true });
+                        }
+
+                        // Recargar datos de Google Sheets si existen
+                        if (mapConfig.googleSheetUrl && hasValidSheetUrl(mapConfig.googleSheetUrl)) {
+                            currentSheetUrl = mapConfig.googleSheetUrl;
+                            await loadAndRender({ silent: false });
+                        }
+
+                        console.log('✅ Mapa actualizado:', mapConfig.name);
+                    } catch (error) {
+                        console.error('Error actualizando mapa:', error);
+                    } finally {
+                        togglePreloader(false);
+                    }
                 }
             } else {
                 loadAndRender({ silent: false });

@@ -347,6 +347,8 @@ class MobileInterface {
         const mainMapSelect = document.getElementById('map-select');
         const mobileInstrumentSelect = document.getElementById('mobile-instrument-select');
         const mobileMapSelect = document.getElementById('mobile-map-select');
+        const desktopSearchGroup = document.getElementById('search-group');
+        const mobileSearchGroup = document.getElementById('mobile-search-group');
 
         if (!mainInstrumentSelect || !mobileInstrumentSelect) return;
 
@@ -417,6 +419,19 @@ class MobileInterface {
                     mainSearchInput.dispatchEvent(new Event('input'));
                 }
             });
+        }
+
+        // Sincronizar visibilidad del buscador móvil con el desktop (#search-group)
+        const syncMobileSearchVisibility = () => {
+            if (!desktopSearchGroup || !mobileSearchGroup) return;
+            // map-config.js establece explícitamente 'flex' o 'none'
+            const visible = desktopSearchGroup.style.display !== 'none';
+            mobileSearchGroup.style.display = visible ? 'block' : 'none';
+        };
+        syncMobileSearchVisibility();
+        if (desktopSearchGroup) {
+            const searchObserver = new MutationObserver(syncMobileSearchVisibility);
+            searchObserver.observe(desktopSearchGroup, { attributes: true, attributeFilter: ['style'] });
         }
     }
 
@@ -839,10 +854,16 @@ class MobileInterface {
                 this.switchBottomSheetTab('controls');
                 this.expandBottomSheet();
 
-                // Asegurar que el contenedor de búsqueda sea visible
+                // Mostrar buscador solo si el mapa lo soporta (según desktop #search-group)
+                const desktopSearch = document.getElementById('search-group');
                 const searchGroup = document.getElementById('mobile-search-group');
+                const enabled = desktopSearch ? desktopSearch.style.display !== 'none' : false;
                 if (searchGroup) {
-                    searchGroup.style.display = 'block';
+                    searchGroup.style.display = enabled ? 'block' : 'none';
+                }
+                if (!enabled) {
+                    alert('Este mapa no tiene buscador disponible.');
+                    break;
                 }
 
                 // Enfocar input de búsqueda existente
