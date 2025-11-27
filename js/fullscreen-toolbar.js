@@ -175,11 +175,14 @@
             fullscreenEditBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
                 e.preventDefault();
-                // Obtener la URL de edición del sheet-info
                 const sheetInfo = document.getElementById('sheet-info');
+                console.log('[FS EDIT] sheetInfo exists?', Boolean(sheetInfo));
                 if (sheetInfo) {
-                    const editLink = sheetInfo.querySelector('a[href*="edit"]');
-                    if (editLink) {
+                    const links = sheetInfo.querySelectorAll('a');
+                    console.log('[FS EDIT] links in #sheet-info:', Array.from(links).map(a => ({ text: a.textContent, href: a.href })));
+                    const editLink = Array.from(links).find(link => (link.textContent || '').includes('Editar datos'));
+                    console.log('[FS EDIT] editLink found?', Boolean(editLink), editLink?.href);
+                    if (editLink && editLink.href) {
                         window.open(editLink.href, '_blank');
                     } else {
                         alert('No hay hoja de cálculo disponible para editar');
@@ -194,11 +197,14 @@
             fullscreenViewBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
                 e.preventDefault();
-                // Obtener la URL de visualización del sheet-info
                 const sheetInfo = document.getElementById('sheet-info');
+                console.log('[FS VIEW] sheetInfo exists?', Boolean(sheetInfo));
                 if (sheetInfo) {
-                    const viewLink = sheetInfo.querySelector('a[href*="pub"]') || sheetInfo.querySelector('a');
-                    if (viewLink) {
+                    const links = sheetInfo.querySelectorAll('a');
+                    console.log('[FS VIEW] links in #sheet-info:', Array.from(links).map(a => ({ text: a.textContent, href: a.href })));
+                    const viewLink = Array.from(links).find(link => (link.textContent || '').includes('Ver datos')) || Array.from(links)[0];
+                    console.log('[FS VIEW] viewLink found?', Boolean(viewLink), viewLink?.href);
+                    if (viewLink && viewLink.href) {
                         window.open(viewLink.href, '_blank');
                     } else {
                         alert('No hay hoja de cálculo disponible para ver');

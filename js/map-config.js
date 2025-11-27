@@ -2046,6 +2046,9 @@ document.addEventListener('DOMContentLoaded', function () {
         'PETROLIFEROS': (typeof PETROLIFEROS_MAPS !== 'undefined' ? PETROLIFEROS_MAPS : [])
     };
 
+    // Exponer para la interfaz móvil y otras integraciones
+    try { window.mapConfigurations = mapConfigurations; } catch (e) { }
+
     function hasValidSheetUrl(url) {
         const trimmed = (url || '').trim();
         return Boolean(trimmed) && !trimmed.startsWith('URL_TO_');
@@ -2072,6 +2075,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Exponer helper para uso desde móvil
+    try { window.getDisplaySheetUrl = getDisplaySheetUrl; } catch (e) { }
+
     function updateSheetInfo(mapConfig, fallbackMessage) {
         if (!sheetInfoEl) {
             return;
@@ -2084,10 +2090,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const hasViewUrl = hasValidSheetUrl(viewUrl);
         const hasEditUrl = hasValidSheetUrl(editUrl);
 
+        console.log('[SHEET INFO] map:', mapConfig ? mapConfig.name : '(none)', 'hasViewUrl:', hasViewUrl, 'hasEditUrl:', hasEditUrl);
+        if (hasViewUrl) console.log('[SHEET INFO] raw viewUrl:', viewUrl);
+        if (hasEditUrl) console.log('[SHEET INFO] raw editUrl:', editUrl);
+
         if (hasViewUrl || hasEditUrl) {
             sheetInfoEl.appendChild(document.createTextNode('Fuente de datos: '));
             if (hasViewUrl) {
                 const displayUrl = getDisplaySheetUrl(viewUrl);
+                console.log('[SHEET INFO] display viewUrl:', displayUrl);
                 if (/^https?:\/\//i.test(displayUrl)) {
                     const link = document.createElement('a');
                     link.href = displayUrl;
@@ -2109,10 +2120,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 link.rel = 'noopener noreferrer';
                 link.textContent = 'Editar datos';
                 sheetInfoEl.appendChild(link);
+                console.log('[SHEET INFO] edit link appended');
             }
         } else {
             sheetInfoEl.textContent = fallbackMessage || NO_SHEET_MESSAGE;
+            console.log('[SHEET INFO] fallback text set:', sheetInfoEl.textContent);
         }
+        console.log('[SHEET INFO] final innerHTML:', sheetInfoEl.innerHTML);
     }
 
     updateSheetInfo(null, SELECT_MAP_MESSAGE);

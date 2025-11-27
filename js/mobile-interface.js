@@ -552,49 +552,84 @@ class MobileInterface {
                 document.getElementById('export-word-btn')?.click();
                 break;
             case 'fullscreen':
-                document.getElementById('fullscreen-btn')?.click();
+                {
+                    const sheetInfo = document.getElementById('sheet-info');
+                    const links = sheetInfo ? Array.from(sheetInfo.querySelectorAll('a')) : [];
+                    const editLink = links.find(a => a.textContent && a.textContent.trim().toLowerCase() === 'editar datos');
+                    console.log('[MOBILE EDIT] sheetInfo exists?', !!sheetInfo);
+                    console.log('[MOBILE EDIT] links in #sheet-info:', links);
+                    console.log('[MOBILE EDIT] editLink found?', !!editLink, editLink ? editLink.href : undefined);
+                    if (editLink && editLink.href) {
+                        window.open(editLink.href, '_blank', 'noopener,noreferrer');
+                    } else {
+                        // Fallback: derive URL from current map configuration
+                        const instrumentSelect = document.getElementById('instrument-select');
+                        const mapSelect = document.getElementById('map-select');
+                        const instrumentName = instrumentSelect ? instrumentSelect.value : undefined;
+                        const mapName = mapSelect ? mapSelect.value : undefined;
+                        const configs = window.mapConfigurations || {};
+                        const instrumentConfigs = instrumentName ? configs[instrumentName] || [] : [];
+                        const mapConfig = instrumentConfigs.find(m => m && m.name === mapName);
+                        console.log('[MOBILE EDIT][FALLBACK] instrument:', instrumentName, 'map:', mapName, 'config:', mapConfig);
+                        const url = mapConfig && mapConfig.googleSheetEditUrl ? mapConfig.googleSheetEditUrl : undefined;
+                        if (url) {
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                        } else {
+                            alert('No se encontró el enlace para editar datos.');
+                        }
+                    }
+                    const sheetInfo2 = document.getElementById('sheet-info');
+                    const links2 = sheetInfo2 ? Array.from(sheetInfo2.querySelectorAll('a')) : [];
+                    const viewLink = links2.find(a => a.textContent && a.textContent.trim().toLowerCase() === 'ver datos');
+                    console.log('[MOBILE VIEW] sheetInfo exists?', !!sheetInfo);
+                    console.log('[MOBILE VIEW] links in #sheet-info:', links2);
+                    console.log('[MOBILE VIEW] viewLink found?', !!viewLink, viewLink ? viewLink.href : undefined);
+                    if (viewLink && viewLink.href) {
+                        window.open(viewLink.href, '_blank', 'noopener,noreferrer');
+                    } else {
+                        // Fallback: derive URL from current map configuration and transform for display
+                        const instrumentSelect = document.getElementById('instrument-select');
+                        const mapSelect = document.getElementById('map-select');
+                        const instrumentName = instrumentSelect ? instrumentSelect.value : undefined;
+                        const mapName = mapSelect ? mapSelect.value : undefined;
+                        const configs = window.mapConfigurations || {};
+                        const instrumentConfigs = instrumentName ? configs[instrumentName] || [] : [];
+                        const mapConfig = instrumentConfigs.find(m => m && m.name === mapName);
+                        console.log('[MOBILE VIEW][FALLBACK] instrument:', instrumentName, 'map:', mapName, 'config:', mapConfig);
+                        let url;
+                        if (mapConfig && mapConfig.googleSheetUrl) {
+                            // Prefer transformed display URL if function available
+                            if (typeof window.getDisplaySheetUrl === 'function') {
+                                try {
+                                    url = window.getDisplaySheetUrl(mapConfig.googleSheetUrl);
+                                } catch (e) {
+                                    console.warn('[MOBILE VIEW][FALLBACK] getDisplaySheetUrl error:', e);
+                                    url = mapConfig.googleSheetUrl;
+                                }
+                            } else {
+                                url = mapConfig.googleSheetUrl;
+                            }
+                        }
+                        if (url) {
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                        } else {
+                            alert('No se encontró el enlace para ver datos.');
+                        }
+                    }
+                }
                 break;
-            case 'about':
-                alert('Mapas Dinámicos de Presas\nSubsecretaría de Planeación y Transición Energética - SENER');
-                break;
-        }
-    }
+                legendContainer.style.background = '#f8f9fa';
+                legendContainer.style.borderRadius = '8px';
+                legendContainer.style.border = '1px solid #eee';
 
-    toggleLayers() {
-        // Simular click en el control de capas de Leaflet
-        const layersControl = document.querySelector('.leaflet-control-layers-toggle');
-        if (layersControl) {
-            layersControl.click();
-        }
-    }
+                // Limpiar estilos inline que puedan venir del control original y ajustar para móvil
+                let cleanHtml = legendHtml.replace(/width: 22px;/g, 'width: 18px;'); // Iconos más pequeños
+                cleanHtml = cleanHtml.replace(/font-size: 13px;/g, 'font-size: 14px;'); // Títulos más legibles
 
-    addLegendToLayersTab(legendHtml) {
-        // 1. Agregar al Bottom Sheet (Tab Capas)
-        const layersContainer = this.bottomSheet.querySelector('#mobile-layers-container');
-        if (layersContainer) {
-            // Buscar si ya existe una leyenda y removerla
-            const existingLegend = layersContainer.querySelector('.mobile-legend-container');
-            if (existingLegend) {
-                existingLegend.remove();
-            }
+                legendContainer.innerHTML = cleanHtml;
 
-            // Crear contenedor para la leyenda
-            const legendContainer = document.createElement('div');
-            legendContainer.className = 'mobile-legend-container';
-            legendContainer.style.marginTop = '1rem';
-            legendContainer.style.padding = '1rem';
-            legendContainer.style.background = '#f8f9fa';
-            legendContainer.style.borderRadius = '8px';
-            legendContainer.style.border = '1px solid #eee';
-
-            // Limpiar estilos inline que puedan venir del control original y ajustar para móvil
-            let cleanHtml = legendHtml.replace(/width: 22px;/g, 'width: 18px;'); // Iconos más pequeños
-            cleanHtml = cleanHtml.replace(/font-size: 13px;/g, 'font-size: 14px;'); // Títulos más legibles
-
-            legendContainer.innerHTML = cleanHtml;
-
-            // Agregar al contenedor de capas
-            layersContainer.appendChild(legendContainer);
+                // Agregar al contenedor de capas
+                layersContainer.appendChild(legendContainer);
         }
 
 
@@ -831,32 +866,74 @@ class MobileInterface {
                 this.exportMap(); // Por ahora usa la misma función
                 break;
             case 'edit-data':
-                // Obtener la URL de edición de sheet-info
-                const sheetInfo = document.getElementById('sheet-info');
-                if (sheetInfo) {
-                    // Buscar el link que tenga el texto "Editar datos"
-                    const links = sheetInfo.querySelectorAll('a');
-                    const editLink = Array.from(links).find(link => link.textContent.includes('Editar datos'));
+                {
+                    const sheetInfo = document.getElementById('sheet-info');
+                    const links = sheetInfo ? Array.from(sheetInfo.querySelectorAll('a')) : [];
+                    const editLink = links.find(a => a.textContent && a.textContent.trim().toLowerCase() === 'editar datos');
+                    console.log('[MOBILE EDIT] sheetInfo exists?', !!sheetInfo);
+                    console.log('[MOBILE EDIT] links in #sheet-info:', links);
+                    console.log('[MOBILE EDIT] editLink found?', !!editLink, editLink ? editLink.href : undefined);
                     if (editLink && editLink.href) {
-                        window.open(editLink.href, '_blank');
-                        return;
+                        window.open(editLink.href, '_blank', 'noopener,noreferrer');
+                    } else {
+                        // Fallback: derive URL from current map configuration
+                        const instrumentSelect = document.getElementById('instrument-select');
+                        const mapSelect = document.getElementById('map-select');
+                        const instrumentName = instrumentSelect ? instrumentSelect.value : undefined;
+                        const mapName = mapSelect ? mapSelect.value : undefined;
+                        const configs = window.mapConfigurations || {};
+                        const instrumentConfigs = instrumentName ? configs[instrumentName] || [] : [];
+                        const mapConfig = instrumentConfigs.find(m => m && m.name === mapName);
+                        console.log('[MOBILE EDIT][FALLBACK] instrument:', instrumentName, 'map:', mapName, 'config:', mapConfig);
+                        const url = mapConfig && mapConfig.googleSheetEditUrl ? mapConfig.googleSheetEditUrl : undefined;
+                        if (url) {
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                        } else {
+                            alert('No se encontró el enlace para editar datos.');
+                        }
                     }
                 }
-                alert('No hay hoja de cálculo disponible para editar');
                 break;
             case 'view-data':
-                // Obtener la URL de visualización de sheet-info
-                const sheetInfoView = document.getElementById('sheet-info');
-                if (sheetInfoView) {
-                    // Buscar el link que tenga el texto "Ver datos"
-                    const viewLinks = sheetInfoView.querySelectorAll('a');
-                    const viewLink = Array.from(viewLinks).find(link => link.textContent.includes('Ver datos'));
+                {
+                    const sheetInfoView = document.getElementById('sheet-info');
+                    const linksView = sheetInfoView ? Array.from(sheetInfoView.querySelectorAll('a')) : [];
+                    const viewLink = linksView.find(a => a.textContent && a.textContent.trim().toLowerCase() === 'ver datos');
+                    console.log('[MOBILE VIEW] sheetInfo exists?', !!sheetInfoView);
+                    console.log('[MOBILE VIEW] links in #sheet-info:', linksView);
+                    console.log('[MOBILE VIEW] viewLink found?', !!viewLink, viewLink ? viewLink.href : undefined);
                     if (viewLink && viewLink.href) {
-                        window.open(viewLink.href, '_blank');
-                        return;
+                        window.open(viewLink.href, '_blank', 'noopener,noreferrer');
+                    } else {
+                        // Fallback: derive URL from current map configuration and transform for display
+                        const instrumentSelect = document.getElementById('instrument-select');
+                        const mapSelect = document.getElementById('map-select');
+                        const instrumentName = instrumentSelect ? instrumentSelect.value : undefined;
+                        const mapName = mapSelect ? mapSelect.value : undefined;
+                        const configs = window.mapConfigurations || {};
+                        const instrumentConfigs = instrumentName ? configs[instrumentName] || [] : [];
+                        const mapConfig = instrumentConfigs.find(m => m && m.name === mapName);
+                        console.log('[MOBILE VIEW][FALLBACK] instrument:', instrumentName, 'map:', mapName, 'config:', mapConfig);
+                        let url;
+                        if (mapConfig && mapConfig.googleSheetUrl) {
+                            if (typeof window.getDisplaySheetUrl === 'function') {
+                                try {
+                                    url = window.getDisplaySheetUrl(mapConfig.googleSheetUrl);
+                                } catch (e) {
+                                    console.warn('[MOBILE VIEW][FALLBACK] getDisplaySheetUrl error:', e);
+                                    url = mapConfig.googleSheetUrl;
+                                }
+                            } else {
+                                url = mapConfig.googleSheetUrl;
+                            }
+                        }
+                        if (url) {
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                        } else {
+                            alert('No se encontró el enlace para ver datos.');
+                        }
                     }
                 }
-                alert('No hay hoja de cálculo disponible para ver');
                 break;
         }
     }
