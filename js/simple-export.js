@@ -158,7 +158,7 @@
                 document.getElementById('export-progress-overlay'),
                 document.getElementById('map-export-progress-overlay')
             ];
-            
+
             overlays.forEach(overlay => {
                 if (!overlay) return;
                 const msg = overlay.querySelector('.progress-message');
@@ -169,7 +169,7 @@
                 if (fill) fill.style.width = percentage;
             });
         }
-        
+
         // Exportar mapa optimizado para Word (tamaño carta, 300 DPI)
         async function exportMapForWord() {
             // Verificar si MapTiler está activo
@@ -181,11 +181,11 @@
             // Mostrar AMBOS overlays de progreso (principal y del mapa)
             const progressOverlay = document.getElementById('export-progress-overlay');
             const mapProgressOverlay = document.getElementById('map-export-progress-overlay');
-            
+
             const progressMessage = progressOverlay ? progressOverlay.querySelector('.progress-message') : null;
             const progressPercentage = progressOverlay ? progressOverlay.querySelector('.progress-percentage') : null;
             const progressFill = progressOverlay ? progressOverlay.querySelector('.progress-fill') : null;
-            
+
             const mapProgressMessage = mapProgressOverlay ? mapProgressOverlay.querySelector('.progress-message') : null;
             const mapProgressPercentage = mapProgressOverlay ? mapProgressOverlay.querySelector('.progress-percentage') : null;
             const mapProgressFill = mapProgressOverlay ? mapProgressOverlay.querySelector('.progress-fill') : null;
@@ -196,7 +196,7 @@
                 if (progressPercentage) progressPercentage.textContent = '10%';
                 if (progressFill) progressFill.style.width = '10%';
             }
-            
+
             if (mapProgressOverlay) {
                 mapProgressOverlay.style.display = 'flex';
                 if (mapProgressMessage) mapProgressMessage.textContent = 'Optimizando para Word...';
@@ -256,12 +256,14 @@
 
                 updateAllProgressOverlays('Capturando imagen optimizada...', '50%');
 
-                console.log('🔄 Capturando imagen optimizada para Word (300 DPI, Alta Calidad)...');
+                console.log('🔄 Capturando imagen optimizada para Word (Alta Resolución)...');
 
-                // Calcular dimensiones manteniendo aspect ratio del contenedor
-                // Escala 6x para obtener ~300 DPI en documentos Word
-                const scale = 6;
+                // Usar dimensiones reales del viewport para mantener el encuadre exacto
+                // Escala 10x para obtener máxima calidad (~500 DPI) sin pixelación en documentos
+                const scale = 10;
                 const mapContentWrapper = document.querySelector('.map-content-wrapper');
+
+                // Capturar exactamente lo que se ve en pantalla con alta resolución
                 const targetWidth = mapContentWrapper.offsetWidth * scale;
                 const targetHeight = mapContentWrapper.offsetHeight * scale;
 
@@ -395,7 +397,7 @@
 
             if (progressOverlay) progressOverlay.style.display = 'flex';
             if (mapProgressOverlay) mapProgressOverlay.style.display = 'flex';
-            
+
             updateAllProgressOverlays('Esperando carga de tiles...', '10%');
 
             // Ocultar control de capas temporalmente
