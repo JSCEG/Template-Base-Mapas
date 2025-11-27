@@ -3250,6 +3250,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Evento para hacer clic fuera de las gerencias y restablecer todo
                 map.on('click', function (e) {
+                    // Si estamos saliendo de un drag de leyenda, ignorar este click
+                    if (window.isLegendDragging || window.ignoreNextMapClick) {
+                        return;
+                    }
                     if (focusedRegion !== null) {
                         resetAllRegionsToInitialState();
                     }
@@ -9960,6 +9964,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Click on map (outside polygons) to reset filter
     map.on('click', function (e) {
+        // Evitar reset si proviene de terminar arrastre de leyenda
+        if (window.isLegendDragging || window.ignoreNextMapClick) {
+            return;
+        }
         // Only reset if we're on electricity map and have a filter active
         if (!electricityPermitsData.length || !currentFilter) {
             return;

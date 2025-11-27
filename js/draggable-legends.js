@@ -81,6 +81,13 @@
         legendElement.style.left = offsetX + 'px';
         legendElement.style.top = offsetY + 'px';
 
+        // Estado de escala para resizing
+        let scale = parseFloat(legendElement.dataset.legendScale || '1');
+        const minScale = 0.6;
+        const maxScale = 2.0;
+        legendElement.style.transformOrigin = 'top left';
+        applyLegendScale(legendElement, scale);
+
         // Añadir indicador visual de que es draggable (se oculta en exportación)
         const dragHandle = document.createElement('div');
         dragHandle.className = 'legend-drag-handle no-export';
@@ -111,11 +118,14 @@
             startX = e.clientX;
             startY = e.clientY;
 
+            // Flag global para que otros listeners puedan ignorar eventos durante el drag
+            window.isLegendDragging = true;
+
             legendElement.style.zIndex = '10000';
             legendElement.style.opacity = '0.9';
 
             document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('mouseup', onMouseUp, { capture: true });
 
             e.preventDefault();
             e.stopPropagation();
@@ -137,20 +147,113 @@
             startY = e.clientY;
 
             e.preventDefault();
+            e.stopPropagation();
         }
 
-        function onMouseUp() {
+        function onMouseUp(e) {
             if (!isDragging) return;
 
             isDragging = false;
             legendElement.style.opacity = '1';
 
+            // Limpiar flag global
+            window.isLegendDragging = false;
+            // Ignorar el siguiente click del mapa (mouseup dispara click en Leaflet)
+            window.ignoreNextMapClick = true;
+            setTimeout(() => { window.ignoreNextMapClick = false; }, 150);
+
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
         }
 
         legendElement.addEventListener('mousedown', onMouseDown);
         dragHandle.addEventListener('mousedown', onMouseDown);
+
+        // Evitar que un simple click en el handle se interprete como click fuera
+        dragHandle.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+
+        // --- Resize handle ---
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = 'legend-resize-handle no-export';
+        resizeHandle.innerHTML = '⤢';
+        resizeHandle.style.cssText = `
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            font-size: 10px;
+            color: #666;
+            cursor: nwse-resize;
+            user-select: none;
+            line-height: 1;
+        `;
+        legendElement.appendChild(resizeHandle);
+
+        let resizing = false;
+        let resizeStartX = 0;
+        let resizeStartY = 0;
+        let startScale = scale;
+
+        function onResizeDown(e) {
+            resizing = true;
+            window.isLegendDragging = true; // reutilizamos bandera para ignorar clicks
+            resizeStartX = e.clientX;
+            resizeStartY = e.clientY;
+            startScale = scale;
+            document.addEventListener('mousemove', onResizeMove);
+            document.addEventListener('mouseup', onResizeUp, { capture: true });
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function onResizeMove(e) {
+            if (!resizing) return;
+            const dx = e.clientX - resizeStartX;
+            const dy = e.clientY - resizeStartY;
+            const delta = (Math.abs(dx) + Math.abs(dy)) / 300; // sensibilidad
+            const direction = (dx + dy) >= 0 ? 1 : -1;
+            scale = Math.min(maxScale, Math.max(minScale, startScale + direction * delta));
+            applyLegendScale(legendElement, scale);
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function onResizeUp(e) {
+            if (!resizing) return;
+            resizing = false;
+            window.isLegendDragging = false;
+            window.ignoreNextMapClick = true;
+            setTimeout(() => { window.ignoreNextMapClick = false; }, 150);
+            document.removeEventListener('mousemove', onResizeMove);
+            document.removeEventListener('mouseup', onResizeUp);
+            legendElement.dataset.legendScale = String(scale);
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        resizeHandle.addEventListener('mousedown', onResizeDown);
+        resizeHandle.addEventListener('click', function (e) { e.stopPropagation(); });
+    }
+
+    function applyLegendScale(el, s) {
+        // Aplicar transform escala y ajustar fuente para que se vea nítida
+        el.style.transform = `scale(${s})`;
+        el.style.fontSize = `${Math.round(12 * s)}px`;
+        // También ajustar padding/margins internos proporcionales
+        // Nota: evitamos tocar width/height para no romper layout absoluto
     }
 
     // Iniciar cuando el DOM esté listo
