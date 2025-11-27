@@ -225,6 +225,11 @@
             const fullscreenToolbarWasVisible = fullscreenToolbar && fullscreenToolbar.style.display !== 'none';
             if (fullscreenToolbar) fullscreenToolbar.style.display = 'none';
 
+            // Ocultar temporalmente los handles de arrastre de leyendas para que no aparezcan en la captura
+            const legendDragHandles = Array.from(document.querySelectorAll('.legend-drag-handle'));
+            const legendDragHandleDisplayStates = legendDragHandles.map(h => h.style.display);
+            legendDragHandles.forEach(h => { h.style.display = 'none'; });
+
             // Mostrar temporalmente el título del mapa si estamos en pantalla completa
             const mapTitle = document.getElementById('map-title-display');
             let mapTitleOriginalDisplay = '';
@@ -299,7 +304,8 @@
                                 'leaflet-control-scale',
                                 'fullscreen-controls',
                                 'fullscreen-control-btn',
-                                'fullscreen-toolbar'
+                                'fullscreen-toolbar',
+                                'no-export'
                             ];
                             for (let i = 0; i < classesToExclude.length; i++) {
                                 if (node.classList.contains(classesToExclude[i])) {
@@ -379,6 +385,11 @@
                     mapTitle.style.visibility = '';
                 }
 
+                // Restaurar handles de arrastre de leyendas
+                if (legendDragHandles) {
+                    legendDragHandles.forEach((h, i) => { h.style.display = legendDragHandleDisplayStates[i]; });
+                }
+
                 restoreLayout();
             }
         }
@@ -434,6 +445,11 @@
             if (fullscreenToolbar) {
                 fullscreenToolbar.style.display = 'none';
             }
+
+            // Ocultar temporalmente los handles de arrastre de leyendas para que no aparezcan en la captura PNG
+            const legendDragHandles = Array.from(document.querySelectorAll('.legend-drag-handle'));
+            const legendDragHandleDisplayStates = legendDragHandles.map(h => h.style.display);
+            legendDragHandles.forEach(h => { h.style.display = 'none'; });
 
             const restoreLayout = prepareLayoutForExport();
             let mapDescriptionOriginalDisplay = '';
@@ -604,6 +620,11 @@
                 }
                 if (cardFooter) {
                     cardFooter.style.display = cardFooterOriginalDisplay;
+                }
+
+                // Restaurar handles de arrastre de leyendas
+                if (legendDragHandles) {
+                    legendDragHandles.forEach((h, i) => { h.style.display = legendDragHandleDisplayStates[i]; });
                 }
                 restoreLayout();
             }
