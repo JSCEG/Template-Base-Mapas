@@ -1,0 +1,889 @@
+﻿/* Estilos Mobile Interface - Aplicados en TODAS las pantallas */
+
+/* Ocultar elementos de escritorio */
+.site-header,
+.main-nav,
+.site-footer,
+.card-toolbar,
+.map-title-banner,
+.filters-panel,
+.map-description,
+.card-footer,
+.fullscreen-toolbar,
+.info-section {
+    display: none !important;
+}
+
+/* Mapa a pantalla completa */
+body,
+html {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+.map-section {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 1 !important;
+}
+
+.container,
+.main-container {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100vh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#map-container,
+.map-card,
+.map-content-wrapper,
+#map {
+    width: 100% !important;
+    height: 100vh !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.map-title-text,
+#map-title-display {
+    display: none !important;
+}
+
+/* Ocultar controles de Leaflet */
+.leaflet-control-layers,
+.leaflet-control-zoom,
+.leaflet-bar,
+.leaflet-top.leaflet-left,
+.leaflet-top.leaflet-right {
+    display: none !important;
+}
+
+/* Botn de men */
+.mobile-menu-btn {
+    position: fixed !important;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1000 !important;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #333;
+    cursor: pointer;
+}
+
+/* Botn de bsqueda */
+.mobile-search-btn {
+    position: fixed !important;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000 !important;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #333;
+    cursor: pointer;
+}
+
+.mobile-search-btn span {
+    display: none;
+}
+
+/* Botn de capas */
+.mobile-layers-btn {
+    position: fixed !important;
+    bottom: 2rem;
+    left: 1rem;
+    z-index: 999 !important;
+    background: white;
+    border: none;
+    border-radius: 24px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    padding: 0.75rem 1.25rem;
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    color: #333;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.mobile-layers-btn:hover {
+    transform: scale(1.05);
+}
+
+.mobile-layers-btn span {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Botones de accin */
+.mobile-action-buttons {
+    position: fixed !important;
+    bottom: 2rem;
+    right: 1rem;
+    z-index: 999 !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.mobile-action-btn,
+.mobile-location-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #333;
+    cursor: pointer;
+}
+
+.mobile-action-btn.primary {
+    background: var(--color-gobmx-verde);
+    color: white;
+}
+
+/* Bottom Sheet */
+.mobile-bottom-sheet {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 1002 !important;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex !important;
+    flex-direction: column;
+    max-height: 85vh;
+}
+
+.mobile-bottom-sheet.collapsed {
+    transform: translateY(calc(100% - 160px));
+}
+
+.mobile-bottom-sheet.expanded {
+    transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+    width: 100%;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+}
+
+.bottom-sheet-handle::after {
+    content: '';
+    width: 40px;
+    height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+}
+
+.bottom-sheet-header {
+    padding: 0 1rem 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.bottom-sheet-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: #333;
+}
+
+.bottom-sheet-subtitle {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0.25rem 0 0;
+}
+
+.bottom-sheet-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.bottom-sheet-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    overflow-x: auto;
+    padding: 0 1rem;
+}
+
+.bottom-sheet-tab {
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.bottom-sheet-tab.active {
+    color: var(--color-gobmx-guinda);
+    border-bottom-color: var(--color-gobmx-guinda);
+}
+
+.bottom-sheet-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.bottom-sheet-tab-content {
+    display: none;
+}
+
+.bottom-sheet-tab-content.active {
+    display: block;
+}
+
+.bottom-sheet-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.bottom-sheet-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.bottom-sheet-control-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.bottom-sheet-control-group .control {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+}
+
+/* Side Drawer */
+.mobile-side-drawer {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100%;
+    background: white;
+    z-index: 2000 !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    display: flex !important;
+    flex-direction: column;
+}
+
+.mobile-side-drawer.open {
+    transform: translateX(0);
+}
+
+.mobile-drawer-overlay {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1999 !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-drawer-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-drawer-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--color-gobmx-guinda) 0%, #7a1b38 100%);
+}
+
+.mobile-drawer-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: white;
+    font-family: 'Patria', serif;
+}
+
+.mobile-drawer-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+}
+
+.mobile-drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.mobile-drawer-section {
+    margin-bottom: 2rem;
+}
+
+.mobile-drawer-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-gobmx-guinda);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+}
+
+.bottom-sheet-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.bottom-sheet-list-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+}
+
+.bottom-sheet-list-item i {
+    font-size: 1.2rem;
+    color: var(--color-gobmx-verde);
+    margin-right: 1rem;
+    width: 24px;
+    text-align: center;
+}
+
+.bottom-sheet-list-item-content {
+    flex: 1;
+}
+
+.bottom-sheet-list-item-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.bottom-sheet-list-item-subtitle {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.mobile-drawer-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.drawer-logos {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.drawer-logo {
+    height: 40px;
+    width: auto;
+}
+
+/* Ajustes para mejor visualización del análisis */
+.mobile-bottom-sheet.collapsed {
+    transform: translateY(calc(100% - 200px));
+    /* Más altura en colapsado */
+}
+
+/* Mejorar altura del contenido cuando hay análisis activo */
+.mobile-bottom-sheet.has-analysis {
+    transform: translateY(calc(100% - 300px));
+}
+
+.mobile-bottom-sheet.has-analysis.expanded {
+    transform: translateY(0);
+    max-height: 90vh;
+}
+
+/* Resaltar tab activo más claramente */
+.bottom-sheet-tab.active {
+    color: var(--color-gobmx-guinda);
+    border-bottom-color: var(--color-gobmx-guinda);
+    border-bottom-width: 3px;
+    font-weight: 700;
+}
+
+/* Asegurar que el contenido del análisis sea visible */
+#mobile-analysis-data {
+    min-height: 200px;
+}
+
+/* Mejorar scroll del contenido */
+.bottom-sheet-content {
+    padding-bottom: 2rem;
+}
+
+/* Asegurar que los tabs siempre sean visibles */
+.bottom-sheet-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+.bottom-sheet-tabs {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+/* Asegurar que el título y tabs no se colapsen */
+.bottom-sheet-title,
+.bottom-sheet-subtitle {
+    flex-shrink: 0;
+}
+
+/* ========================================
+   BOTÓN FLOTANTE DE MENÚ (Reemplazo del Bottom Sheet siempre visible)
+   ======================================== */
+
+/* Ocultar bottom sheet por defecto */
+.mobile-bottom-sheet {
+    transform: translateY(100%) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mostrar solo cuando está activo */
+.mobile-bottom-sheet.active {
+    transform: translateY(0) !important;
+}
+
+/* Botón flotante de menú principal */
+.mobile-menu-toggle-btn {
+    position: fixed !important;
+    bottom: 2rem;
+    left: 1.5rem;
+    right: auto;
+    transform: none;
+    z-index: 1100 !important;
+    background: var(--color-gobmx-guinda);
+    color: white;
+    border: none;
+    border-radius: 28px;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 0 4px 12px rgba(155, 34, 71, 0.3);
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle-btn:hover {
+    transform: translateX(50%) scale(1.05);
+    box-shadow: 0 6px 16px rgba(155, 34, 71, 0.4);
+}
+
+.mobile-menu-toggle-btn i {
+    font-size: 1.2rem;
+}
+
+/* Ocultar botón cuando el bottom sheet está activo */
+.mobile-menu-toggle-btn.hidden {
+    transform: translateY(150%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Menú flotante de opciones */
+.mobile-floating-menu {
+    position: fixed !important;
+    bottom: 6rem;
+    right: 50%;
+    transform: translateX(50%) translateY(20px);
+    z-index: 1050 !important;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 200px;
+}
+
+.mobile-floating-menu.active {
+    transform: translateX(50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-floating-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.mobile-floating-menu-item:hover {
+    background: #f8f9fa;
+}
+
+.mobile-floating-menu-item i {
+    font-size: 1.1rem;
+    color: var(--color-gobmx-verde);
+    width: 24px;
+    text-align: center;
+}
+
+.mobile-floating-menu-item span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Ajustar posición del botón de capas para no chocar */
+.mobile-layers-btn {
+    bottom: 2rem;
+    left: 1rem;
+}
+
+/* Ajustar posición del menú flotante para que aparezca justo encima del botón */
+.mobile-floating-menu {
+    bottom: 5.5rem;
+    /* Justo encima del botón de menú */
+    left: 1rem;
+    right: auto;
+    transform: translateY(10px);
+}
+
+.mobile-floating-menu.active {
+    transform: translateY(0);
+}
+
+/* Cerrar menú al hacer clic fuera */
+.mobile-floating-menu-overlay {
+    position: fixed !important;
+    inset: 0;
+    justify-content: center;
+}
+
+.drawer-logo {
+    height: 40px;
+    width: auto;
+}
+
+/* Ajustes para mejor visualización del análisis */
+.mobile-bottom-sheet.collapsed {
+    transform: translateY(calc(100% - 200px));
+    /* Más altura en colapsado */
+}
+
+/* Mejorar altura del contenido cuando hay análisis activo */
+.mobile-bottom-sheet.has-analysis {
+    transform: translateY(calc(100% - 300px));
+}
+
+.mobile-bottom-sheet.has-analysis.expanded {
+    transform: translateY(0);
+    max-height: 90vh;
+}
+
+/* Resaltar tab activo más claramente */
+.bottom-sheet-tab.active {
+    color: var(--color-gobmx-guinda);
+    border-bottom-color: var(--color-gobmx-guinda);
+    border-bottom-width: 3px;
+    font-weight: 700;
+}
+
+/* Asegurar que el contenido del análisis sea visible */
+#mobile-analysis-data {
+    min-height: 200px;
+}
+
+/* Mejorar scroll del contenido */
+.bottom-sheet-content {
+    padding-bottom: 2rem;
+}
+
+/* Asegurar que los tabs siempre sean visibles */
+.bottom-sheet-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+.bottom-sheet-tabs {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+/* Asegurar que el título y tabs no se colapsen */
+.bottom-sheet-title,
+.bottom-sheet-subtitle {
+    flex-shrink: 0;
+}
+
+/* ========================================
+   BOTÓN FLOTANTE DE MENÚ (Reemplazo del Bottom Sheet siempre visible)
+   ======================================== */
+
+/* Ocultar bottom sheet por defecto */
+.mobile-bottom-sheet {
+    transform: translateY(100%) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mostrar solo cuando está activo */
+.mobile-bottom-sheet.active {
+    transform: translateY(0) !important;
+}
+
+/* Botón flotante de menú principal */
+.mobile-menu-toggle-btn {
+    position: fixed !important;
+    bottom: 2rem;
+    left: 1.5rem;
+    right: auto;
+    transform: none;
+    z-index: 1100 !important;
+    background: var(--color-gobmx-guinda);
+    color: white;
+    border: none;
+    border-radius: 28px;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 0 4px 12px rgba(155, 34, 71, 0.3);
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle-btn:hover {
+    transform: translateX(50%) scale(1.05);
+    box-shadow: 0 6px 16px rgba(155, 34, 71, 0.4);
+}
+
+.mobile-menu-toggle-btn i {
+    font-size: 1.2rem;
+}
+
+/* Ocultar botón cuando el bottom sheet está activo */
+.mobile-menu-toggle-btn.hidden {
+    transform: translateY(150%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Menú flotante de opciones */
+.mobile-floating-menu {
+    position: fixed !important;
+    bottom: 6rem;
+    right: 50%;
+    transform: translateX(50%) translateY(20px);
+    z-index: 1050 !important;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 200px;
+}
+
+.mobile-floating-menu.active {
+    transform: translateX(50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-floating-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.mobile-floating-menu-item:hover {
+    background: #f8f9fa;
+}
+
+.mobile-floating-menu-item i {
+    font-size: 1.1rem;
+    color: var(--color-gobmx-verde);
+    width: 24px;
+    text-align: center;
+}
+
+.mobile-floating-menu-item span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Ajustar posición del botón de capas para no chocar */
+.mobile-layers-btn {
+    bottom: 2rem;
+    left: 1rem;
+}
+
+/* Ajustar posición del menú flotante para que aparezca justo encima del botón */
+.mobile-floating-menu {
+    bottom: 5.5rem;
+    /* Justo encima del botón de menú */
+    left: 1rem;
+    right: auto;
+    transform: translateY(10px);
+}
+
+.mobile-floating-menu.active {
+    transform: translateY(0);
+}
+
+/* Cerrar menú al hacer clic fuera */
+.mobile-floating-menu-overlay {
+    position: fixed !important;
+    inset: 0;
+    z-index: 1040 !important;
+    background: transparent;
+    display: none;
+}
+
+.mobile-floating-menu-overlay.active {
+    display: block;
+}
+
+/* ========================================
+   ESCALADO DE ICONOS DE PRESAS (ZOOM)
+   ======================================== */
+.custom-presa-icon {
+    transition: transform 0.2s ease-out;
+    transform-origin: center bottom;
+    /* Escalar desde la base */
+}
+
+/* Zoom lejano (País) - Iconos pequeños */
+.zoom-level-0 .custom-presa-icon,
+.zoom-level-1 .custom-presa-icon,
+.zoom-level-2 .custom-presa-icon,
+.zoom-level-3 .custom-presa-icon,
+.zoom-level-4 .custom-presa-icon,
+.zoom-level-5 .custom-presa-icon {
+    transform: scale(0.4);
+}
+
+/* Zoom medio-lejano (Región) */
+.zoom-level-6 .custom-presa-icon,
+.zoom-level-7 .custom-presa-icon {
+    transform: scale(0.5);
+}
+
+.zoom-level-8 .custom-presa-icon,
+.zoom-level-9 .custom-presa-icon {
+    transform: scale(0.7);
+}
+
+/* Zoom medio (Estado) - Casi tamaño normal */
+.zoom-level-10 .custom-presa-icon,
+.zoom-level-11 .custom-presa-icon {
+    transform: scale(0.85);
+}
+
+/* Zoom detalle (Municipio) - Tamaño normal */
+.zoom-level-12 .custom-presa-icon,
+.zoom-level-13 .custom-presa-icon {
+    transform: scale(1.0);
+}
+
+/* Zoom muy cercano - Iconos grandes */
+.zoom-level-14 .custom-presa-icon,
+.zoom-level-15 .custom-presa-icon {
+    transform: scale(1.2);
+}
+
+.zoom-level-16 .custom-presa-icon,
+.zoom-level-17 .custom-presa-icon,
+.zoom-level-18 .custom-presa-icon {
+    transform: scale(1.4);
+}

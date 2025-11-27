@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Mapas Din&aacute;micos de Presas - SNIEn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.maptiler.com/maptiler-sdk-js/v3.6.1/maptiler-sdk.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/presas-popup.css" />
+    <link rel="stylesheet" href="css/mobile-responsive.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+        /* Estilos para exportación y pantalla completa */
+        #export-map-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #28a745;
+            transition: all 0.3s ease;
+        }
+
+        #export-map-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        #export-word-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #2B579A;
+            transition: all 0.3s ease;
+        }
+
+        #export-word-btn:hover {
+            background: #1e3f6f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(43, 87, 154, 0.4);
+        }
+
+        #fullscreen-btn {
+            transition: all 0.3s ease;
+        }
+
+        #fullscreen-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Estilos para pantalla completa */
+        .map-card:fullscreen {
+            background: white;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-card:fullscreen .map-content-wrapper {
+            flex: 1;
+            padding: 0;
+            display: flex;
+        }
+
+        .map-card:fullscreen #map {
+            height: 100% !important;
+            width: 100% !important;
+            flex: 1;
+        }
+
+        /* Ocultar todo excepto el mapa en pantalla completa */
+        .map-card:fullscreen .card-toolbar,
+        .map-card:fullscreen .map-title-banner,
+        .map-card:fullscreen .map-title-text,
+        .map-card:fullscreen .filters-panel,
+        .map-card:fullscreen .map-description,
+        .map-card:fullscreen .card-footer {
+            display: none !important;
+        }
+
+        /* Controles flotantes en pantalla completa */
+        .fullscreen-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .map-card:fullscreen .fullscreen-controls {
+            display: flex !important;
+        }
+
+        .fullscreen-control-btn {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .fullscreen-control-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+
+        .fullscreen-control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .fullscreen-control-btn--word {
+            background: #2B579A;
+            color: white;
+        }
+
+        .fullscreen-control-btn--word:hover {
+            background: #1e3f6f;
+        }
+
+        /* Ajustar posición del control de capas en pantalla completa */
+        .map-card:fullscreen .leaflet-top.leaflet-right {
+            top: 20px;
+            right: 90px;
+            /* Dejar espacio para los botones flotantes */
+        }
+
+        /* Toolbar flotante en pantalla completa */
+        .fullscreen-toolbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            display: none;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            max-width: calc(100% - 140px);
+        }
+
+        .map-card:fullscreen .fullscreen-toolbar {
+            display: flex !important;
+        }
+
+        .fullscreen-toolbar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 180px;
+        }
+
+        .fullscreen-toolbar-group label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .fullscreen-control-input {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .fullscreen-control-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .fullscreen-control-input:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .fullscreen-toolbar-btn {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #333;
+            transition: all 0.2s;
+            align-self: flex-end;
+        }
+
+        .fullscreen-toolbar-btn:hover {
+            background: #f0f0f0;
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .fullscreen-toolbar-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Botón de toggle del toolbar */
+        .fullscreen-toolbar-toggle {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 60px;
+            background: white;
+            border: 1px solid #ddd;
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s;
+            z-index: 1;
+        }
+
+        .fullscreen-toolbar-toggle:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .fullscreen-toolbar-toggle i {
+            transition: transform 0.3s;
+        }
+
+        /* Estado colapsado del toolbar */
+        .fullscreen-toolbar.collapsed {
+            width: auto !important;
+            padding: 0 !important;
+        }
+
+        .fullscreen-toolbar.collapsed .fullscreen-toolbar-content {
+            display: none !important;
+        }
+
+        .fullscreen-toolbar.collapsed .fullscreen-toolbar-toggle {
+            position: relative;
+            right: 0;
+            transform: none;
+            border-radius: 8px;
+            margin: 15px;
+        }
+
+        .fullscreen-toolbar.collapsed .fullscreen-toolbar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .fullscreen-toolbar-content {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="preloader">
+        <div class="preloader-content">
+            <img src="img/snien.png" alt="SNIEn Logo" class="preloader-logo">
+            <p>Cargando datos del mapa...</p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Bienvenida -->
+    <div id="welcome-screen" class="welcome-screen">
+        <div class="welcome-content">
+            <div class="welcome-header">
+                <img src="img/logo_sener.png" alt="SENER" class="welcome-logo-sener">
+                <div class="welcome-title-container">
+                    <h1 class="welcome-title">Mapas Dinámicos de Presas</h1>
+                    <p class="welcome-subtitle">Subsecretaría de Planeación y Transición Energética</p>
+                </div>
+                <img src="img/snien.png" alt="SNIEn" class="welcome-logo-snien">
+            </div>
+
+            <div class="welcome-instructions">
+                <div class="instruction-item">
+                    <div class="instruction-icon"><i class="bi bi-droplet-fill"></i></div>
+                    <div class="instruction-content">
+                        <h3>Infraestructura Hidroeléctrica</h3>
+                        <p>Visualice las presas y su información del Sistema Nacional de Información Energética.</p>
+                    </div>
+                </div>
+
+                <div class="instruction-item">
+                    <div class="instruction-icon"><i class="bi bi-map"></i></div>
+                    <div class="instruction-content">
+                        <h3>Elija un Mapa</h3>
+                        <p>Seleccione el mapa específico que desea visualizar.</p>
+                    </div>
+                </div>
+
+                <div class="instruction-item">
+                    <div class="instruction-icon"><i class="bi bi-arrows-move"></i></div>
+                    <div class="instruction-content">
+                        <h3>Interactúe con el Mapa</h3>
+                        <p>Explore la información geoespacial, haga clic y use el zoom.</p>
+                    </div>
+                </div>
+
+                <div class="instruction-item">
+                    <div class="instruction-icon"><i class="bi bi-cloud-arrow-down"></i></div>
+                    <div class="instruction-content">
+                        <h3>Consulte y Exporte</h3>
+                        <p>Los datos se actualizan desde Google Sheets. Exporte en PNG o Word.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button id="welcome-start-btn" class="welcome-btn">
+                <i class="bi bi-geo-alt-fill"></i>
+                Comenzar a Explorar
+            </button>
+
+            <div class="welcome-footer">
+                <p>Subsecretaría de Planeación y Transición Energética - SENER</p>
+            </div>
+        </div>
+    </div>
+
+    <header class="site-header">
+        <div class="container header-content">
+            <div class="brand">
+                <div class="brand-logos">
+                    <img src="img/logo_sener.png" alt="Logo SENER" class="brand-logo brand-logo--sener" />
+                    <img src="img/snien.png" alt="Logo Sistema Nacional de Información Energética"
+                        class="brand-logo brand-logo--snien" />
+                </div>
+                <div class="brand-copy">
+                    <span class="brand-eyebrow">Subsecretar&iacute;a de Planeaci&oacute;n y Transici&oacute;n
+                        Energ&eacute;tica</span>
+                    <span class="brand-title">Mapas Din&aacute;micos de Presas</span>
+                </div>
+            </div>
+            <div class="header-meta">
+                <span class="meta-label">Actualizaci&oacute;n</span>
+                <span id="last-updated" class="meta-value">--</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <section class="map-section">
+            <div class="container">
+                <div class="map-card">
+                    <!-- Preloader para pantalla completa -->
+                    <div id="map-preloader" class="map-preloader" style="display: none;">
+                        <div class="preloader-content">
+                            <img src="img/snien.png" alt="SNIEn Logo" class="preloader-logo">
+                            <p>Analizando recursos cercanos...</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overlay de progreso para exportación en pantalla completa -->
+                    <div id="map-export-progress-overlay" class="progress-overlay" style="display: none;">
+                        <div class="progress-content">
+                            <div class="progress-spinner"></div>
+                            <h4 class="progress-title">Exportando mapa...</h4>
+                            <p class="progress-message">Capturando imagen del mapa</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <p class="progress-percentage">0%</p>
+                        </div>
+                    </div>
+
+                    <div class="card-toolbar">
+                        <div class="toolbar-group">
+                            <label for="instrument-select">Instrumento</label>
+                            <select id="instrument-select" class="control">
+                                <option value="">Seleccione un instrumento</option>
+                                <option value="PLADESE">PLADESE</option>
+                                <option value="PRESAS">PRESAS</option>
+                                <option value="MUNICIPIOS_RIOS">Municipios y Ríos</option>
+                                <option value="PLADESHI">PLADESHI</option>
+                                <option value="PLATEASE">PLATEASE</option>
+                                <option value="PROSENER">PROSENER</option>
+                                <option value="ELECTRICIDAD">Electricidad</option>
+                                <option value="GAS NATURAL">Gas Natural</option>
+                                <option value="GAS L.P.">Gas L.P.</option>
+                                <option value="PETROLIFEROS">Petrolíferos</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-group">
+                            <label for="map-select">Mapa</label>
+                            <select id="map-select" class="control" disabled>
+                                <option value="">Seleccione un mapa</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-group sheet-info-group">
+                            <span class="sheet-info-label">Hoja de c&aacute;lculo</span>
+                            <span id="sheet-info" class="sheet-info-value">Sin fuente de datos seleccionada.</span>
+                        </div>
+                        <div class="toolbar-group" id="search-group" style="display: none;">
+                            <label for="permit-search">Buscar permiso</label>
+                            <div class="search-container">
+                                <input type="text" id="permit-search" class="control"
+                                    placeholder="Número de permiso o razón social" style="max-width: 250px;"
+                                    autocomplete="off">
+                                <button type="button" id="search-help-btn" class="search-help-btn"
+                                    title="Ayuda de búsqueda">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                                <div id="search-suggestions" class="search-suggestions" style="display: none;"></div>
+                            </div>
+                        </div>
+                        <div class="toolbar-actions">
+                            <div class="toolbar-group">
+                                <button type="button" id="refresh-data" class="btn-secondary btn-icon"
+                                    title="Actualizar datos">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <div class="toolbar-group">
+                                <button type="button" id="export-map-btn" class="btn-export btn-export--png btn-icon"
+                                    title="Descargar mapa como imagen PNG">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                            <div class="toolbar-group">
+                                <button type="button" id="export-word-btn" class="btn-export btn-export--word btn-icon"
+                                    title="Exportar optimizado para Word (Tamaño Carta)">
+                                    <i class="bi bi-file-word"></i>
+                                </button>
+                            </div>
+                            <div class="toolbar-group">
+                                <button type="button" id="fullscreen-btn" class="btn-secondary btn-icon"
+                                    title="Pantalla completa">
+                                    <i class="bi bi-arrows-fullscreen"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="map-content-wrapper">
+                        <h2 id="map-title-display" class="map-title-text">
+                            Mapa de Presas - Subsecretar&iacute;a de Planeaci&oacute;n y Transici&oacute;n
+                            Energ&eacute;tica
+                        </h2>
+
+                        <div id="map" class="map-view" role="region" aria-label="Mapa interactivo de Presas">
+                            <div id="selected-region-banner" class="selected-region-banner" style="display: none;"
+                                aria-live="polite">
+                                <span id="selected-region-text"></span>
+                            </div>
+
+                            <!-- Botones flotantes en pantalla completa -->
+                            <div id="fullscreen-controls" class="fullscreen-controls" style="display: none;">
+                                <button id="exit-fullscreen-btn" class="fullscreen-control-btn"
+                                    title="Salir de pantalla completa (ESC)">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <button id="export-fullscreen-btn" class="fullscreen-control-btn"
+                                    title="Descargar mapa">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                                <button id="export-word-fullscreen-btn"
+                                    class="fullscreen-control-btn fullscreen-control-btn--word"
+                                    title="Exportar para Word">
+                                    <i class="bi bi-file-word"></i>
+                                </button>
+                            </div>
+
+                            <!-- Panel de controles flotante en pantalla completa -->
+                            <div id="fullscreen-toolbar" class="fullscreen-toolbar" style="display: none;">
+                                <button id="fullscreen-toolbar-toggle" class="fullscreen-toolbar-toggle"
+                                    title="Ocultar/Mostrar controles">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+
+                                <div id="fullscreen-toolbar-content" class="fullscreen-toolbar-content">
+                                    <div class="fullscreen-toolbar-group">
+                                        <label for="fullscreen-instrument-select">Instrumento</label>
+                                        <select id="fullscreen-instrument-select" class="fullscreen-control-input">
+                                            <option value="">Seleccione...</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="fullscreen-toolbar-group">
+                                        <label for="fullscreen-map-select">Mapa</label>
+                                        <select id="fullscreen-map-select" class="fullscreen-control-input" disabled>
+                                            <option value="">Seleccione...</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="fullscreen-toolbar-group" id="fullscreen-search-group"
+                                        style="display: none;">
+                                        <label for="fullscreen-permit-search">Buscar</label>
+                                        <input type="text" id="fullscreen-permit-search"
+                                            class="fullscreen-control-input" placeholder="Buscar permiso..."
+                                            autocomplete="off">
+                                    </div>
+
+                                    <button id="fullscreen-refresh-btn" class="fullscreen-toolbar-btn"
+                                        title="Actualizar datos">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+
+                                    <button id="fullscreen-edit-btn" class="fullscreen-toolbar-btn"
+                                        title="Editar datos">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+
+                                    <button id="fullscreen-view-btn" class="fullscreen-toolbar-btn" title="Ver datos">
+                                        <i class="bi bi-table"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="map-description" class="map-description">
+                            <h4 id="map-description-title"></h4>
+                            <p id="map-description-content"></p>
+                        </div>
+                        <div class="card-footer">
+                            <p class="data-source">
+                                Fuente de datos: Hoja de c&aacute;lculo institucional publicada (Google Sheets).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <div class="container info-grid">
+                <article class="info-panel">
+                    <h2>Prop&oacute;sito</h2>
+                    <p>
+                        Este geovisor permite visualizar la infraestructura hidroel&eacute;ctrica de M&eacute;xico,
+                        incluyendo presas y centrales hidroel&eacute;ctricas, con mapas base personalizados MapTiler
+                        y datos actualizados desde Google Sheets.
+                    </p>
+                </article>
+                <article class="info-panel">
+                    <h3>Recomendaciones de uso</h3>
+                    <ul>
+                        <li>Usa el control de capas en el mapa para cambiar el mapa base y activar/desactivar capas.
+                        </li>
+                        <li>Usa la acci&oacute;n &ldquo;Actualizar datos&rdquo; tras editar la hoja de c&aacute;lculo.
+                        </li>
+                        <li>Acerca o aleja el mapa hasta el detalle deseado; el visor mantiene el enfoque en
+                            M&eacute;xico.</li>
+                        <li>Exporta el mapa en PDF o PNG con las configuraciones que necesites.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <div class="footer-logos">
+                <img src="img/logo_gob.png" alt="Gobierno de M&eacute;xico" />
+                <img src="img/logo_sener.png" alt="Secretar&iacute;a de Energ&iacute;a" />
+            </div>
+            <p>Subsecretar&iacute;a de Planeaci&oacute;n y Transici&oacute;n Energ&eacute;tica &middot; SENER</p>
+        </div>
+    </footer>
+
+    <!-- Modal de ayuda de búsqueda -->
+    <div id="search-help-modal" class="modal" role="dialog" aria-labelledby="search-help-modal-title" aria-hidden="true"
+        style="display: none;">
+        <div class="modal-overlay" aria-hidden="true"></div>
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="search-help-modal-title" class="modal-title">
+                    <i class="bi bi-search"></i> Ayuda del Buscador de Permisos
+                </h3>
+                <button type="button" class="modal-close search-help-modal-close" aria-label="Cerrar modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <div class="search-help-content">
+                    <div class="search-help-section">
+                        <h4><i class="bi bi-info-circle-fill" style="color: var(--color-verde-profundo);"></i> Cómo usar
+                            el buscador</h4>
+                        <ul class="search-help-list">
+                            <li><strong>Escribe</strong> el número de permiso o razón social en el campo de búsqueda
+                            </li>
+                            <li>La búsqueda es <strong>en tiempo real</strong> (mínimo 2 caracteres)</li>
+                            <li>Usa las <strong>flechas ↑↓</strong> del teclado para navegar por los resultados</li>
+                            <li>Presiona <strong>Enter</strong> para seleccionar un resultado</li>
+                            <li>Presiona <strong>Esc</strong> para cerrar las sugerencias</li>
+                        </ul>
+                    </div>
+
+                    <div class="search-help-section">
+                        <h4><i class="bi bi-funnel-fill" style="color: var(--color-guinda);"></i> Búsqueda con filtros
+                        </h4>
+                        <p class="search-help-highlight" id="search-help-status">
+                            <!-- Se actualiza dinámicamente con JavaScript -->
+                        </p>
+                        <p class="search-help-description">
+                            El buscador <strong>respeta los filtros activos</strong>. Si tienes un filtro aplicado
+                            (Estado, GCR o Tecnología), la búsqueda solo mostrará resultados dentro de ese filtro.
+                        </p>
+                    </div>
+
+                    <div class="search-help-section">
+                        <h4><i class="bi bi-lightbulb-fill" style="color: #f0ad4e;"></i> Consejos útiles</h4>
+                        <ul class="search-help-list">
+                            <li>Aplica <strong>filtros</strong> antes de buscar para resultados más precisos</li>
+                            <li>Puedes buscar por <strong>parte del nombre</strong> de la empresa</li>
+                            <li>Los resultados muestran: Estado, Capacidad (MW) y Tecnología</li>
+                            <li>Al seleccionar, el mapa se centra automáticamente en el permiso</li>
+                        </ul>
+                    </div>
+
+                    <div class="search-help-example">
+                        <h5><i class="bi bi-code-square"></i> Ejemplo:</h5>
+                        <div class="search-help-example-box">
+                            <p><strong>1.</strong> Aplica filtro "Por Estado" → Selecciona "09 CDMX"</p>
+                            <p><strong>2.</strong> Escribe en el buscador: "G/123"</p>
+                            <p><strong>3.</strong> Solo verás permisos de CDMX que coincidan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: center; padding: 20px;">
+                <button type="button" class="btn-primary search-help-modal-close">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de advertencia de MapTiler -->
+    <div id="maptiler-warning-modal" class="modal" role="dialog" aria-labelledby="maptiler-warning-title"
+        aria-hidden="true" style="display: none;">
+        <div class="modal-overlay" aria-hidden="true"></div>
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="maptiler-warning-title" class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill" style="color: #f0ad4e;"></i> Cambiar Mapa Base para
+                    Exportar
+                </h3>
+                <button type="button" class="modal-close maptiler-warning-close" aria-label="Cerrar modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <div class="warning-content">
+                    <p style="font-size: 16px; margin-bottom: 20px;">
+                        <strong>Los mapas base de MapTiler no se pueden exportar</strong> debido a restricciones de CORS
+                        (Cross-Origin Resource Sharing).
+                    </p>
+
+                    <div
+                        style="background: #fff3cd; border-left: 4px solid #f0ad4e; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                        <p style="margin: 0; color: #856404;">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <strong>Solución:</strong> Cambia a uno de los siguientes mapas base antes de exportar:
+                        </p>
+                    </div>
+
+                    <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+                        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <i class="bi bi-check-circle-fill" style="color: #28a745;"></i>
+                            <strong>Positron (Claro)</strong> - Limpio y minimalista (recomendado)
+                        </li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <i class="bi bi-check-circle-fill" style="color: #28a745;"></i>
+                            <strong>Voyager (Colores)</strong> - Colores suaves y balanceados
+                        </li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <i class="bi bi-check-circle-fill" style="color: #28a745;"></i>
+                            <strong>OpenStreetMap</strong> - Mapa estándar detallado
+                        </li>
+                        <li style="padding: 8px 0;">
+                            <i class="bi bi-check-circle-fill" style="color: #28a745;"></i>
+                            <strong>Satélite (ESRI)</strong> - Imágenes satelitales
+                        </li>
+                    </ul>
+
+                    <div
+                        style="background: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px; border-radius: 4px;">
+                        <p style="margin: 0; color: #0c5460; font-size: 14px;">
+                            <i class="bi bi-lightbulb-fill"></i>
+                            <strong>Tip:</strong> Usa el control de capas en la esquina superior derecha del mapa para
+                            cambiar el mapa base.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: center; padding: 20px;">
+                <button type="button" class="btn-primary maptiler-warning-close">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de configuración de exportación -->
+    <div id="export-modal" class="modal" role="dialog" aria-labelledby="export-modal-title" aria-hidden="true">
+        <div class="modal-overlay" aria-hidden="true"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="export-modal-title" class="modal-title">Configurar exportación</h3>
+                <button type="button" class="modal-close" aria-label="Cerrar modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="export-config-form" class="export-form">
+                    <div class="form-section">
+                        <h4 class="form-section-title">Formato de archivo</h4>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="format" value="pdf" checked>
+                                <span class="radio-custom"></span>
+                                <span class="radio-label">PDF - Para impresión y documentos</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="format" value="png">
+                                <span class="radio-custom"></span>
+                                <span class="radio-label">PNG - Para presentaciones digitales</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4 class="form-section-title">Tamaño y resolución</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="page-size">Tamaño de página</label>
+                                <select id="page-size" name="pageSize" class="control">
+                                    <option value="A4">A4 (210 × 297 mm)</option>
+                                    <option value="A3">A3 (297 × 420 mm)</option>
+                                    <option value="Letter">Carta (216 × 279 mm)</option>
+                                    <option value="custom">Personalizado</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="dpi-select">Resolución (DPI)</label>
+                                <select id="dpi-select" name="dpi" class="control">
+                                    <option value="150">150 DPI - Calidad estándar</option>
+                                    <option value="300">300 DPI - Alta calidad</option>
+                                    <option value="600">600 DPI - Máxima calidad</option>
+                                    <option value="1200">1200 DPI - Calidad de impresión</option>
+                                    <option value="2400" selected>2400 DPI - Calidad Ultra</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="custom-size-section" class="form-row custom-size-section" style="display: none;">
+                            <div class="form-group">
+                                <label for="custom-width">Ancho (píxeles)</label>
+                                <input type="number" id="custom-width" name="customWidth" class="control" min="100"
+                                    max="8000" value="2480">
+                            </div>
+                            <div class="form-group">
+                                <label for="custom-height">Alto (píxeles)</label>
+                                <input type="number" id="custom-height" name="customHeight" class="control" min="100"
+                                    max="8000" value="3508">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4 class="form-section-title">Elementos a incluir</h4>
+                        <div class="checkbox-group">
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="includeScale" checked>
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-label">Escala del mapa</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="includeLegend" checked>
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-label">Leyenda</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="includeAttribution" checked>
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-label">Atribuciones y fuentes</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="includeTimestamp" checked>
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-label">Fecha y hora de generación</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="includeTitle" checked>
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-label">Título del mapa</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4 class="form-section-title">Información adicional</h4>
+                        <div class="form-group">
+                            <label for="map-title">Título personalizado (opcional)</label>
+                            <input type="text" id="map-title" name="mapTitle" class="control"
+                                placeholder="Mapa SNIEn - Sistema Nacional de Información Energética">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary btn-cancel">Cancelar</button>
+                <button type="button" class="btn-secondary btn-export-confirm">
+                    <span class="btn-text">Exportar</span>
+                    <span class="btn-spinner" style="display: none;">
+                        <span class="spinner-small"></span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sistema de notificaciones -->
+    <div id="notification-container" class="notification-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Overlay de progreso global -->
+    <div id="export-progress-overlay" class="progress-overlay" style="display: none;">
+        <div class="progress-content">
+            <div class="progress-spinner"></div>
+            <h4 class="progress-title">Exportando mapa...</h4>
+            <p class="progress-message">Capturando imagen del mapa</p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <p class="progress-percentage">0%</p>
+        </div>
+    </div>
+
+    <!-- Core libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdn.maptiler.com/maptiler-sdk-js/v3.6.1/maptiler-sdk.umd.min.js"></script>
+    <script src="https://cdn.maptiler.com/leaflet-maptilersdk/v4.1.0/leaflet-maptilersdk.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.min.js"></script>
+
+    <!-- Export dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+
+    <!-- Chart.js for dynamic charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Datos de mapas por instrumento -->
+    <script src="js/municipios-rios-maps.js"></script>
+    <script src="js/pladese-maps.js"></script>
+    <!-- Modular JavaScript files -->
+    <script src="js/notification-system.js"></script>
+    <script src="js/presas-maps.js"></script>
+    <script src="js/map-config.js"></script>
+    <script src="js/fullscreen-toolbar.js"></script>
+    <script src="js/mobile-interface.js"></script>
+    <script src="js/fix-layer-error.js"></script>
+    <script src="js/simple-export.js"></script>
+
+    <!-- Auto-select PLADESE and its first map on load -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const instrumentSelect = document.getElementById('instrument-select');
+            const mapSelect = document.getElementById('map-select');
+
+            if (!instrumentSelect || !mapSelect) {
+                return;
+            }
+
+            const DEFAULT_INSTRUMENT = 'PLADESE';
+            const MAX_ATTEMPTS = 20;
+            let attempts = 0;
+
+            const dispatchChange = (element) => {
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+
+            instrumentSelect.value = DEFAULT_INSTRUMENT;
+            dispatchChange(instrumentSelect);
+
+            const selectFirstMap = () => {
+                if (mapSelect.options.length > 1) {
+                    mapSelect.selectedIndex = 1; // First real option after placeholder
+                    dispatchChange(mapSelect);
+                    return;
+                }
+
+                if (attempts < MAX_ATTEMPTS) {
+                    attempts += 1;
+                    setTimeout(selectFirstMap, 150);
+                } else {
+                    console.warn('No se pudo cargar el mapa por defecto de PLADESE.');
+                }
+            };
+
+            selectFirstMap();
+        });
+    </script>
+
+</body>
+
+</html>
