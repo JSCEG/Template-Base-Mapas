@@ -538,8 +538,9 @@ html {
 }
 
 .mobile-menu-toggle-btn:hover {
-    transform: translateX(50%) scale(1.05);
-    box-shadow: 0 6px 16px rgba(155, 34, 71, 0.4);
+    /* Evitar movimiento en hover */
+    transform: none;
+    box-shadow: 0 4px 12px rgba(155, 34, 71, 0.3);
 }
 
 .mobile-menu-toggle-btn i {
@@ -733,8 +734,8 @@ html {
 }
 
 .mobile-menu-toggle-btn:hover {
-    transform: translateX(50%) scale(1.05);
-    box-shadow: 0 6px 16px rgba(155, 34, 71, 0.4);
+    transform: none;
+    box-shadow: 0 4px 12px rgba(155, 34, 71, 0.3);
 }
 
 .mobile-menu-toggle-btn i {
