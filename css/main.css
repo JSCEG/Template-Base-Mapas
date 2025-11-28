@@ -603,7 +603,7 @@ button {
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
-    background: #601623;
+    background: none;
     color: white;
     padding: 5px 16px;
     border-radius: 4px;
@@ -619,7 +619,7 @@ button {
 }
 
 #selected-region-text {
-    display: inline-block;
+    display: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1896,13 +1896,13 @@ Notification system */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(4px);
     color: #333;
-    font-weight: 400;
+    font-weight: 100;
 }
 
 .pib-label-id {
     text-align: center;
-    font-size: 7px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 100;
     color: #1a1a1a;
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);
     padding-bottom: 2px;
