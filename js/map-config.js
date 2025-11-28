@@ -191,6 +191,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }),
             exportable: true
         },
+        'carto-voyager-nolabels': {
+            label: 'Voyager Sin Etiquetas',
+            creator: () => L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20,
+                crossOrigin: 'anonymous'
+            }),
+            exportable: true
+        },
         'esri-worldimagery': {
             label: 'Satélite (ESRI)',
             creator: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -396,8 +406,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Determinar mapa base por defecto
-    let defaultBaseKey = 'Ninguno';
-    let activeBaseLayer = ningunoBaseLayer;
+    let defaultBaseKey = 'carto-voyager-nolabels';
+    let activeBaseLayer = baseLayers[defaultBaseKey];
 
     // Verificar si hay una configuración específica de mapa base (ej. desde PRESAS_MAPS)
     // Esto asume que el primer mapa de PRESAS_MAPS es el activo por defecto
@@ -2525,13 +2535,12 @@ document.addEventListener('DOMContentLoaded', function () {
             map.removeControl(pibLegendControl);
         }
 
-        pibLegendControl = L.control({ position: 'topright' });
+        pibLegendControl = L.control({ position: 'bottomright' });
 
         pibLegendControl.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend legend-two-columns');
-            // Asegurar que se muestre por encima
-            div.style.zIndex = '1001';
-            div.style.display = 'block';
+            // Asegurar que se muestre por encima con estilos inline forzados
+            div.style.cssText = 'display: block !important; z-index: 1001 !important; visibility: visible !important; opacity: 1 !important;';
             div.innerHTML = '<strong>ADICIONES DE CAPACIDAD Y ALMACENAMIENTO (MW)</strong><br>';
 
             // Create two-column container
@@ -8742,15 +8751,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-            // Get dynamic column names from the aggregated data
-
-            const allColumns = aggregatedData.length > 0 ? Object.keys(aggregatedData[0]) : [];
-
-            const capacityColumns = allColumns.filter(col =>
-
-                col !== 'Gerencia de Control Regional' && col !== 'GCR' && col.trim() !== ''
-
-            );
+            // Get dynamic column names robustly from the union of all aggregated rows
+            const capacityColumns = Array.from(new Set(
+                aggregatedData.flatMap(row => Object.keys(row))
+            )).filter(col => col !== 'Gerencia de Control Regional' && col !== 'GCR' && col.trim() !== '');
 
 
 
@@ -9010,8 +9014,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
             // CALL SPECIAL LEGEND FUNCTION FOR TOTAL CAPACITY MAP (TWO COLUMNS, BOTTOM)
-
+            console.log('📊 Agregando leyenda de totales con datos:', capacityTotals);
             addTotalCapacityLegendTwoColumns(capacityTotals, mapConfig.name);
+            console.log('✅ Leyenda de totales agregada al mapa');
 
 
 

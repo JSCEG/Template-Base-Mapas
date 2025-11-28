@@ -960,36 +960,41 @@ class MobileInterface {
     }
 
     setupZoomHandlers() {
-        const checkMap = setInterval(() => {
-            if (window.map) {
-                clearInterval(checkMap);
+        // Sync mobile zoom controls with Leaflet map zoom
+        const zoomInBtn = document.getElementById('mobile-zoom-in');
+        const zoomOutBtn = document.getElementById('mobile-zoom-out');
 
-                // Función para actualizar clases de zoom
-                const updateZoomClasses = () => {
-                    const zoom = window.map.getZoom();
-                    const mapContainer = window.map.getContainer();
+        if (!zoomInBtn || !zoomOutBtn) return;
 
-                    // Remover clases de zoom anteriores
-                    mapContainer.classList.forEach(cls => {
-                        if (cls.startsWith('zoom-level-')) {
-                            mapContainer.classList.remove(cls);
-                        }
-                    });
+        // Wait for map to be ready
+        let attempts = 0;
+        const maxAttempts = 50; // ~5s
+        const intervalId = setInterval(() => {
+            attempts++;
+            if (window.map && typeof window.map.on === 'function') {
+                clearInterval(intervalId);
 
-                    // Agregar clase actual
-                    mapContainer.classList.add(`zoom-level-${Math.floor(zoom)}`);
-                };
+                zoomInBtn.addEventListener('click', function () {
+                    try { window.map.zoomIn(); } catch (e) { }
+                });
+                zoomOutBtn.addEventListener('click', function () {
+                    try { window.map.zoomOut(); } catch (e) { }
+                });
 
-                window.map.on('zoomend', updateZoomClasses);
-                updateZoomClasses(); // Inicializar
+                // Update zoom buttons based on map zoom state
+                window.map.on('zoomend', function () {
+                    const currentZoom = window.map.getZoom ? window.map.getZoom() : null;
+                    const minZoom = window.map.getMinZoom ? window.map.getMinZoom() : 0;
+                    const maxZoom = window.map.getMaxZoom ? window.map.getMaxZoom() : 18;
+                    if (currentZoom === null) return;
+                    zoomOutBtn.disabled = currentZoom <= minZoom;
+                    zoomInBtn.disabled = currentZoom >= maxZoom;
+                });
+            } else if (attempts >= maxAttempts) {
+                clearInterval(intervalId);
+                console.warn('Mobile zoom handlers: map not ready');
             }
-        }, 500);
-    }
-
-    removeMobileElements() {
-        document.querySelectorAll('.mobile-menu-btn, .mobile-search-btn, .mobile-action-buttons, .mobile-layers-btn, .mobile-location-btn, .mobile-bottom-sheet, .mobile-side-drawer, .mobile-drawer-overlay, .mobile-search-modal, .mobile-map-legend').forEach(el => {
-            el.remove();
-        });
+        }, 100);
     }
 }
 
