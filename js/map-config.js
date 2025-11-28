@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const SELECT_MAP_MESSAGE = 'Seleccione un mapa para ver su hoja de calculo.';
     let currentSheetUrl = SHEET_CSV;
     const NODE_MARKER_OPTIONS = {
-        radius: 3,
+        radius: 6,
         fillColor: '#1f7a62',
         color: '#ffffff',
-        weight: 1,
+        weight: 2,
         opacity: 1,
         fillOpacity: 0.9
     };
@@ -173,27 +173,19 @@ document.addEventListener('DOMContentLoaded', function () {
             creator: () => createMapTilerLayer('0198a9f0-f135-7991-aaec-bea71681556e', 'amigo', fallbackDark, 'SENER Oscuro'),
             isMapTiler: true
         }, */
-        'carto-positron': {
-            label: 'Positron (Claro)',
-            creator: () => L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: fallbackAttribution,
-                maxZoom: 19,
-                crossOrigin: 'anonymous'
-            }),
-            exportable: true
-        },
-        'carto-voyager': {
-            label: 'Voyager (Colores)',
-            creator: () => L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: fallbackAttribution,
-                maxZoom: 19,
-                crossOrigin: 'anonymous'
-            }),
-            exportable: true
-        },
         'carto-voyager-nolabels': {
             label: 'Voyager Sin Etiquetas',
             creator: () => L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20,
+                crossOrigin: 'anonymous'
+            }),
+            exportable: true
+        },
+        'carto-positron-nolabels': {
+            label: 'Positron Sin Etiquetas (Claro)',
+            creator: () => L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
                 subdomains: 'abcd',
                 maxZoom: 20,
@@ -206,6 +198,15 @@ document.addEventListener('DOMContentLoaded', function () {
             creator: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri',
                 maxZoom: 19,
+                crossOrigin: 'anonymous'
+            }),
+            exportable: true
+        },
+        'esri-worldterrain': {
+            label: 'Terrain (ESRI)',
+            creator: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
+                maxZoom: 13,
                 crossOrigin: 'anonymous'
             }),
             exportable: true
@@ -393,8 +394,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    baseLayersForControl['Crema'] = cremaBaseLayer;
-    baseLayersForControl['Gris'] = grisBaseLayer;
     baseLayersForControl['Ninguno'] = ningunoBaseLayer;
 
 
@@ -436,6 +435,63 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     map.isBasemapActive = false;
 
+    // Estado global de escala de etiquetas
+    let globalLabelScale = 1.0;
+    const minLabelScale = 0.5;
+    const maxLabelScale = 2.0;
+
+    // Función para aplicar escala a todas las etiquetas
+    function applyGlobalLabelScale() {
+        const allLabels = document.querySelectorAll('.pib-label, .pib-label-content, .pib-label-id, .municipio-label, .electrification-label, .capacity-label, .custom-label');
+        allLabels.forEach(label => {
+            label.style.transform = `scale(${globalLabelScale})`;
+            label.style.transformOrigin = 'center center';
+        });
+        console.log(`📏 Escala de etiquetas aplicada: ${globalLabelScale.toFixed(2)}x`);
+    }
+
+    // Crear controles de escala de etiquetas
+    const labelScaleControl = L.control({ position: 'topleft' });
+    labelScaleControl.onAdd = function (map) {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control label-scale-control');
+        div.style.cssText = 'background: white; padding: 8px; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); z-index: 1000; margin-top: 10px; margin-left: 10px;';
+        div.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <div style="font-size: 10px; font-weight: bold; color: #666; margin-bottom: 2px;">ETIQUETAS</div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button id="label-scale-minus" style="width: 30px; height: 30px; border: 1px solid #ccc; background: #f8f8f8; cursor: pointer; font-size: 18px; font-weight: bold; border-radius: 3px; display: flex; align-items: center; justify-content: center;" title="Reducir tamaño de etiquetas">−</button>
+                    <span id="label-scale-display" style="font-size: 12px; font-weight: bold; min-width: 45px; text-align: center; color: #333;">100%</span>
+                    <button id="label-scale-plus" style="width: 30px; height: 30px; border: 1px solid #ccc; background: #f8f8f8; cursor: pointer; font-size: 18px; font-weight: bold; border-radius: 3px; display: flex; align-items: center; justify-content: center;" title="Aumentar tamaño de etiquetas">+</button>
+                </div>
+            </div>
+        `;
+        L.DomEvent.disableClickPropagation(div);
+        return div;
+    };
+    labelScaleControl.addTo(map);
+    console.log('✅ Controles de escala de etiquetas agregados al mapa');
+
+    // Event listeners para los controles
+    setTimeout(() => {
+        const minusBtn = document.getElementById('label-scale-minus');
+        const plusBtn = document.getElementById('label-scale-plus');
+        const display = document.getElementById('label-scale-display');
+
+        if (minusBtn && plusBtn && display) {
+            minusBtn.addEventListener('click', () => {
+                globalLabelScale = Math.max(minLabelScale, globalLabelScale - 0.1);
+                display.textContent = Math.round(globalLabelScale * 100) + '%';
+                applyGlobalLabelScale();
+            });
+
+            plusBtn.addEventListener('click', () => {
+                globalLabelScale = Math.min(maxLabelScale, globalLabelScale + 0.1);
+                display.textContent = Math.round(globalLabelScale * 100) + '%';
+                applyGlobalLabelScale();
+            });
+        }
+    }, 100);
+
     // Función para actualizar clases de zoom en el contenedor del mapa
     function updateMapZoomClasses() {
         const zoom = map.getZoom();
@@ -472,25 +528,31 @@ document.addEventListener('DOMContentLoaded', function () {
     leaderLineSvg.classList.add('leader-line-svg');
     map.getContainer().appendChild(leaderLineSvg);
 
-    // Crear panes para cada estilo con sus filtros
-
-    // Pane Crema
-    map.createPane(CREMA_TILE_PANE);
-    const cremaTilePane = map.getPane(CREMA_TILE_PANE);
-    if (cremaTilePane) {
-        cremaTilePane.style.zIndex = 150;
-        cremaTilePane.style.filter = 'sepia(0.4) saturate(0.2) brightness(1.2) contrast(0.85)';
-        cremaTilePane.style.opacity = '0.45';
-    }
-
-    // Pane Gris
-    map.createPane(GRIS_TILE_PANE);
-    const grisTilePane = map.getPane(GRIS_TILE_PANE);
-    if (grisTilePane) {
-        grisTilePane.style.zIndex = 150;
-        grisTilePane.style.filter = 'grayscale(1) brightness(1.1) contrast(0.9)';
-        grisTilePane.style.opacity = '0.5';
-    }
+    // Observer para aplicar escala a nuevas etiquetas dinámicamente
+    const labelObserver = new MutationObserver((mutations) => {
+        let hasNewLabels = false;
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) {
+                    if (node.classList && (node.classList.contains('pib-label') ||
+                        node.classList.contains('pib-label-content') ||
+                        node.classList.contains('municipio-label') ||
+                        node.classList.contains('electrification-label') ||
+                        node.classList.contains('capacity-label') ||
+                        node.classList.contains('custom-label'))) {
+                        hasNewLabels = true;
+                    }
+                    // Buscar etiquetas dentro del nodo
+                    const labels = node.querySelectorAll ? node.querySelectorAll('.pib-label, .pib-label-content, .municipio-label, .electrification-label, .capacity-label, .custom-label') : [];
+                    if (labels.length > 0) hasNewLabels = true;
+                }
+            });
+        });
+        if (hasNewLabels && globalLabelScale !== 1.0) {
+            applyGlobalLabelScale();
+        }
+    });
+    labelObserver.observe(map.getContainer(), { childList: true, subtree: true });
 
     // Crear pane para la capa de México (encima del satélite, debajo de otras capas)
     const MEXICO_OVERLAY_PANE = 'mexicoOverlayPane';
@@ -2416,7 +2478,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'H2': '#00BFFF',                        // Azul cielo profundo (hidrógeno)
 
             // Almacenamiento
-            'ALMACENAMIENTO': '#9932CC',            // Púrpura oscuro/Orquídea oscura (almacenamiento)
+            'ALMACENAMIENTO': '#4682B4',            // Azul acero (almacenamiento)
             'BATERÍAS': '#BA55D3',                  // Orquídea medio (baterías)
             'BATERIAS': '#BA55D3',                  // Orquídea medio (baterías)
 
@@ -2519,7 +2581,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     div.innerHTML += `<div style="font-size: 12px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px;">TOTAL CAPACIDAD: ${totals.generationTotal.toLocaleString('es-MX')} MW</div>`;
                 }
                 if (totals.storageTotal && totals.storageTotal > 0) {
-                    div.innerHTML += `<div style="font-size: 12px; font-weight: 700; color: #9932CC; margin-bottom: 3px;">TOTAL ALMACENAMIENTO: ${totals.storageTotal.toLocaleString('es-MX')} MW</div>`;
+                    div.innerHTML += `<div style="font-size: 12px; font-weight: 700; color: #4682B4; margin-bottom: 3px;">TOTAL ALMACENAMIENTO: ${totals.storageTotal.toLocaleString('es-MX')} MW</div>`;
                 }
                 div.innerHTML += '</div>';
             }
@@ -2574,7 +2636,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (totals && totals.storageTotal && totals.storageTotal > 0) {
                 hasData = true;
                 const almDiv = L.DomUtil.create('span', 'legend-total-item', totalsContainer);
-                almDiv.innerHTML = `<strong style="color: #9932CC;">TOTAL ALMACENAMIENTO: ${totals.storageTotal.toLocaleString('es-MX')} MW</strong>`;
+                almDiv.innerHTML = `<strong style="color: #4682B4;">TOTAL ALMACENAMIENTO: ${totals.storageTotal.toLocaleString('es-MX')} MW</strong>`;
             }
 
             if (!hasData) {
@@ -2621,7 +2683,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 if (totals.storageTotal && totals.storageTotal > 0) {
                     const almItem = L.DomUtil.create('div', 'horizontal-legend-item total', container);
-                    almItem.innerHTML = `<strong style="color: #9932CC;">TOTAL ALM: ${totals.storageTotal.toLocaleString('es-MX')} MW</strong>`;
+                    almItem.innerHTML = `<strong style="color: #329bccff;">TOTAL ALM: ${totals.storageTotal.toLocaleString('es-MX')} MW</strong>`;
                 }
             }
 
@@ -8649,7 +8711,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #1a1a1a;">CAP: ${generationTotal.toLocaleString('es-MX')} MW</div>`;
                             }
                             if (storageTotal > 0) {
-                                labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #9932CC;">ALM: ${storageTotal.toLocaleString('es-MX')} MW</div>`;
+                                labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #329bccff;">ALM: ${storageTotal.toLocaleString('es-MX')} MW</div>`;
                             }
                             labelHTML += `</div></div>`;
 
@@ -8700,7 +8762,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #1a1a1a;">CAP: ${generationTotal.toLocaleString('es-MX')} MW</div>`;
                         }
                         if (storageTotal > 0) {
-                            labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #9932CC;">ALM: ${storageTotal.toLocaleString('es-MX')} MW</div>`;
+                            labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #329bccff;">ALM: ${storageTotal.toLocaleString('es-MX')} MW</div>`;
                         }
                         labelHTML += `</div></div>`;
 
@@ -8926,7 +8988,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #1a1a1a;">CAP: ${generationTotal.toLocaleString('es-MX')} MW</div>`;
                             }
                             if (storageTotal > 0) {
-                                labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #9932CC;">ALM: ${storageTotal.toLocaleString('es-MX')} MW</div>`;
+                                labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #329bccff;">ALM: ${storageTotal.toLocaleString('es-MX')} MW</div>`;
                             }
                             labelHTML += `</div></div>`;
 
@@ -8991,7 +9053,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #1a1a1a;">CAP: ${generationTotal.toLocaleString('es-MX')} MW</div>`;
                         }
                         if (storageTotal > 0) {
-                            labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #9932CC;">ALM: ${storageTotal.toLocaleString('es-MX')} MW</div>`;
+                            labelHTML += `<div style="font-size: 11px; font-weight: 700; color: #329bccff;">ALM: ${storageTotal.toLocaleString('es-MX')} MW</div>`;
                         }
                         labelHTML += `</div></div>`;
 

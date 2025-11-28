@@ -875,9 +875,12 @@ button {
 }
 
 @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 10px rgba(155, 34, 71, 0.3);
     }
+
     50% {
         box-shadow: 0 0 20px rgba(155, 34, 71, 0.6);
     }
@@ -1892,6 +1895,8 @@ Notification system */
     padding: 3px 5px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(4px);
+    color: #333;
+    font-weight: 400;
 }
 
 .pib-label-id {
@@ -1923,7 +1928,7 @@ Notification system */
 
 .pib-value {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 400;
     line-height: 1;
 }
 
